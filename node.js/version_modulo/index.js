@@ -1,33 +1,55 @@
-"use strict;"
+"use strict";
+
 
 const fs = require('fs');
-const path = require('path');
+const async = require('async')
 
-//funcion que lea la version de un modulo
-function versionModulo(nombreModulo, callback) {
-    const fichero = path.join('./node_modules', nombreModulo, 'package.json');
-    fs.readFile(fichero, 'utf-8', function(err, datos) {
+
+//require usa una ruta relaticva a este fichero.js
+const versionModulo = require('./versionModulo');
+
+
+//esta ruta es relativa a la raiz del proyecto
+function versionModulos(callback) {
+    fs.readdir('./node_modules', function(err, lista) {
         if (err) {
-            callback(err); //llamamos al callback con el error
+            callback(err);
             return;
         }
+        console.log(lista);
+        //para cada string de la lista ejecutamos versionModulo
+        //concat recibe un array, la funcion a ejectar con cada elemennto y un callback final
+        async.concat(lista,
+            //iterador
+            function iterador(elemento, callbackIterador) {
+                if (elemento === '.bin') {
+                    callbackIterador(null);
+                    return;
+                }
+                versionModulo(elemento, function(err, version) {
+                    if (err) {
+                        callbackIterador(err);
+                        return;
+                    }
+                    //ya tenemos la version del modulo
+                    callbackIterador(null, { version: version, modulo: elemento });
+                    return;
+                })
+            },
+            //finalizador
+            //function finalizador(err, resultados) {
+            //console.log('resultados', resultados)
 
-        const packageJson = JSON.parse(datos);
-        //LLamamos al callback con el dto que nos pidio
-        callback(null, packageJson.version)
-
+            //})
+            callback);
     });
-
 }
 
 
-
-
-//llamamos a la funcion
-versionModulo('chance', function(err, version) {
+versionModulos(function(err, datos) {
     if (err) {
-        console.log('Error!', err);
+        console.log('Hubo un error', err);
         return;
     }
-    console.log('La version de chance es :', version);
+    console.log('Los modulos son:', datos);
 })

@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.3.0",
     "chance": "^1.0.6"
   }
 }

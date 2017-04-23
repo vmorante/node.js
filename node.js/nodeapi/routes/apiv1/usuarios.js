@@ -10,6 +10,8 @@ const mongoose = require('mongoose');
 const Usuario = mongoose.model('Usuario');
 const jwt = require('jsonwebtoken')
 
+const config = require('../../config');
+
 
 router.post('/login', (req, res, next) => {
     //recibims credenciales
@@ -20,6 +22,7 @@ router.post('/login', (req, res, next) => {
     Usuario.findOne({ email: email }).exec((err, usuario) => {
         if (err) {
             next(err);
+
             return;
         }
 
@@ -30,31 +33,27 @@ router.post('/login', (req, res, next) => {
 
         //comprobamos su clave
         if (clave !== usuario.clave) {
+
             res.json({ success: false, error: 'Credenciales incorrectas' });
             return;
 
         }
         //creamis un token JWT
-        jwt.sign({ usuario_id: usuario._id }, 'kjdhsjskshasjkdh'), {
-            expiresIn: '2d'
-        }, (err, token) => {
-            if (err) {
-                next(err);
-                return;
-            }
-            //se lo devolvemos
-            res.json({ success: true, token: token })
+
+        jwt.sign({ usuario_id: usuario._id }, config.jwtSecret, config.jwtConfig,
+
+            (err, token) => {
+                if (err) {
+                    next(err);
+                    return;
+                }
+
+                //se lo devolvemos
+                res.json({ success: true, token: token })
 
 
-        }
-
+            });
 
     });
-
-
-
-
-
-
 });
 module.exports = router;
